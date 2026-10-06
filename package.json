@@ -1,0 +1,22 @@
+{
+  "name": "spyglasslint",
+  "version": "1.0.0",
+  "description": "Spyglass Language Server 기반 마인크래프트 데이터팩 정적 분석 린터 및 MCP 서버",
+  "main": "src/mcp-server.js",
+  "bin": {
+    "spyglass-lint": "./bin/spyglass-lint.js"
+  },
+  "scripts": {
+    "test": "node src/test-suite.js"
+  },
+  "keywords": [
+    "minecraft",
+    "datapack",
+    "linter",
+    "mcp",
+    "spyglass",
+    "agent-plugin"
+  ],
+  "author": "minkyet",
+  "license": "MIT"
+}

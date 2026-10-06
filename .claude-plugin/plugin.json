@@ -1,0 +1,16 @@
+{
+  "name": "spyglasslint",
+  "version": "1.0.0",
+  "description": "Spyglass Language Server-based Minecraft datapack linter and MCP server",
+  "author": {
+    "name": "minkyet"
+  },
+  "license": "MIT",
+  "keywords": [
+    "minecraft",
+    "datapack",
+    "linter",
+    "mcp",
+    "spyglass"
+  ]
+}
