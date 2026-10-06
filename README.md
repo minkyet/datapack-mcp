@@ -1,6 +1,6 @@
 # SpyglassLint
 
-SpyglassLint is a static analysis linter and AI agent plugin for Minecraft datapacks, based on the Spyglass Language Server (LSP) from the VS Code [Datapack Helper Plus](https://marketplace.visualstudio.com/items?itemName=spgoding.datapack-language-server) extension.
+SpyglassLint is a static analysis linter and AI agent plugin for Minecraft datapacks, based on the [Spyglass Language Server](https://github.com/SpyglassMC/Spyglass).
 
 ## Install
 
