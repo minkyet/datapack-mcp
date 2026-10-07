@@ -1,6 +1,6 @@
-# Datapack DevKit
+# Datapack mcp
 
-Datapack DevKit is an AI agent development plugin and static analysis toolkit for Minecraft datapacks, combining [MineCode MCP](https://github.com/AnCarsenat/minecode-mcp) and [Spyglass Language Server](https://github.com/SpyglassMC/Spyglass).
+Datapack mcp is an AI agent development plugin and static analysis toolkit for Minecraft datapacks, combining [MineCode MCP](https://github.com/AnCarsenat/minecode-mcp) and [Spyglass Language Server](https://github.com/SpyglassMC/Spyglass).
 
 ## Prerequisites
 
@@ -13,32 +13,32 @@ Datapack DevKit is an AI agent development plugin and static analysis toolkit fo
 ### Claude Code
 
 ```text
-/plugin marketplace add minkyet/datapack-devkit
-/plugin install datapack-devkit
+/plugin marketplace add minkyet/datapack-mcp
+/plugin install datapack-mcp
 ```
 
 ### Codex
 
 #### Codex CLI
 ```bash
-codex plugin marketplace add minkyet/datapack-devkit
-codex plugin add datapack-devkit@datapack-devkit-marketplace
+codex plugin marketplace add minkyet/datapack-mcp
+codex plugin add datapack-mcp@datapack-mcp-marketplace
 ```
 
 #### Codex App (GUI)
 1. In the Codex App - open **Plugins** from the sidebar.
 2. Click the arrow next to Create, then select Add marketplace.
 3. Enter:
-   - **Source**: `minkyet/datapack-devkit`
+   - **Source**: `minkyet/datapack-mcp`
    - **Git ref**: `main`
    - **Sparse paths**: (leave blank)
-4. Click **Add marketplace**, select **datapack-devkit** plugin from list and install.
+4. Click **Add marketplace**, select **datapack-mcp** plugin from list and install.
 5. Restart Codex.
 
 ### Antigravity CLI (`agy`)
 
 ```bash
-agy plugin install https://github.com/minkyet/datapack-devkit
+agy plugin install https://github.com/minkyet/datapack-mcp
 ```
 
 ## Usage

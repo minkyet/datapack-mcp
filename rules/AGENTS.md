@@ -1,6 +1,6 @@
 # Minecraft Datapack Agent Guardrails
 
-These rules define the guardrails for agent behavior when planning, writing, and statically verifying Minecraft datapack code with the `datapack-devkit` plugin active.
+These rules define the guardrails for agent behavior when planning, writing, and statically verifying Minecraft datapack code with the `datapack-mcp` plugin active.
 
 ## 1. Pre-Generation: Specification & Version Retrieval (MineCode MCP)
 Before writing or generating any datapack files, verify target version constraints to prevent LLM hallucination:

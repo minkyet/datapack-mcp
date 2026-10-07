@@ -1,5 +1,5 @@
 {
-  "name": "datapack-devkit",
+  "name": "datapack-mcp",
   "version": "1.0.0",
   "description": "MineCode & Spyglass Language Server based all-in-one Minecraft datapack development and static analysis agent plugin",
   "author": {
