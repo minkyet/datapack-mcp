@@ -1,6 +1,6 @@
 {
   "$schema": "https://antigravity.google/schemas/v1/plugin.json",
-  "name": "spyglasslint",
+  "name": "datapack-devkit",
   "version": "1.0.0",
-  "description": "Spyglass Language Server-based Minecraft datapack linter and MCP server"
+  "description": "MineCode & Spyglass Language Server based all-in-one Minecraft datapack development and static analysis agent plugin"
 }

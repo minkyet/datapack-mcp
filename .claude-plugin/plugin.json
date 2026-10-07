@@ -1,7 +1,7 @@
 {
-  "name": "spyglasslint",
+  "name": "datapack-devkit",
   "version": "1.0.0",
-  "description": "Spyglass Language Server-based Minecraft datapack linter and MCP server",
+  "description": "MineCode & Spyglass Language Server based all-in-one Minecraft datapack development and static analysis agent plugin",
   "author": {
     "name": "minkyet"
   },
@@ -11,6 +11,7 @@
     "datapack",
     "linter",
     "mcp",
-    "spyglass"
+    "spyglass",
+    "minecode"
   ]
 }

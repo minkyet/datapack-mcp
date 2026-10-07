@@ -2,7 +2,12 @@
   "mcpServers": {
     "spyglasslint": {
       "command": "node",
-      "args": ["src/mcp-server.js"]
+      "args": ["src/spyglasslint/mcp-server.js"]
+    },
+    "minecode": {
+      "command": "node",
+      "args": ["src/minecode/runner.js"]
     }
   }
 }
+

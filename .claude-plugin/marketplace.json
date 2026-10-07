@@ -1,16 +1,16 @@
 {
-  "name": "spyglasslint-marketplace",
+  "name": "datapack-devkit-marketplace",
   "owner": {
     "name": "minkyet"
   },
   "metadata": {
-    "description": "SpyglassLint Plugin Marketplace for Claude Code and Codex",
+    "description": "Datapack DevKit Plugin Marketplace for Claude Code and Codex",
     "version": "1.0.0"
   },
   "plugins": [
     {
-      "name": "spyglasslint",
-      "description": "Spyglass Language Server-based Minecraft datapack linter and MCP server",
+      "name": "datapack-devkit",
+      "description": "MineCode & Spyglass Language Server based all-in-one Minecraft datapack development and static analysis agent plugin",
       "author": {
         "name": "minkyet"
       },
@@ -19,7 +19,8 @@
         "datapack",
         "linter",
         "mcp",
-        "spyglass"
+        "spyglass",
+        "minecode"
       ],
       "source": "./"
     }

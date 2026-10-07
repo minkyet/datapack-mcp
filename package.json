@@ -1,13 +1,14 @@
 {
-  "name": "spyglasslint",
+  "name": "datapack-devkit",
   "version": "1.0.0",
-  "description": "Spyglass Language Server 기반 마인크래프트 데이터팩 정적 분석 린터 및 MCP 서버",
-  "main": "src/mcp-server.js",
+  "description": "MineCode & Spyglass Language Server 기반 마인크래프트 데이터팩 개발 및 정적 분석 올인원 에이전트 플러그인",
+  "main": "src/spyglasslint/mcp-server.js",
   "bin": {
-    "spyglass-lint": "./bin/spyglass-lint.js"
+    "spyglass-lint": "./bin/spyglass-lint.js",
+    "minecode-runner": "./bin/minecode-runner.js"
   },
   "scripts": {
-    "test": "node src/test-suite.js"
+    "test": "node tests/test-spyglass.js && node tests/test-minecode.js"
   },
   "keywords": [
     "minecraft",
@@ -15,6 +16,7 @@
     "linter",
     "mcp",
     "spyglass",
+    "minecode",
     "agent-plugin"
   ],
   "author": "minkyet",
