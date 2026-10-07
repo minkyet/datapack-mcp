@@ -1,2 +1,2 @@
 #!/usr/bin/env node
-require('./src/mcp-server');
+require('./src/spyglasslint/mcp-server');

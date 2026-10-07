@@ -184,13 +184,17 @@ class LspClient {
     }
     this.openedFiles.set(uri, version);
 
-    // Trigger diagnostics calculation by requesting document symbols
+    // Trigger diagnostics calculation by requesting project analysis
     try {
-      await this._sendRequest('textDocument/documentSymbol', {
-        textDocument: { uri }
-      }, 2500);
+      await this._sendCustomRequestWithoutParams('spyglassmc/analyzeProject', 15000);
     } catch {
-      // documentSymbol may return null if no symbols exist; ignore
+      try {
+        await this._sendRequest('textDocument/documentSymbol', {
+          textDocument: { uri }
+        }, 2500);
+      } catch {
+        // ignore
+      }
     }
 
     return await diagPromise;

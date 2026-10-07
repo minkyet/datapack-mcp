@@ -4,4 +4,4 @@
  * Spyglass Datapack Linter CLI Executable Entrypoint
  */
 
-require('../src/cli').main();
+require('../src/spyglasslint/cli').main();

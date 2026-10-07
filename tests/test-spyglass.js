@@ -16,21 +16,24 @@ const { spawn, spawnSync } = require('node:child_process');
 const path = require('node:path');
 const fs = require('node:fs');
 const readline = require('node:readline');
-const { checkCache } = require('./warmup');
-const { LspClient } = require('./lsp-client');
-const { findWorkspaceRoot } = require('./workspace');
+const os = require('node:os');
+const { checkCache } = require('../src/spyglasslint/warmup');
+const { LspClient } = require('../src/spyglasslint/lsp-client');
+const { findWorkspaceRoot } = require('../src/spyglasslint/workspace');
 
-const WORKSPACE_ROOT = findWorkspaceRoot(__dirname);
+const FIXTURE_PACK_ROOT = path.resolve(__dirname, 'fixtures/test_pack');
+const WORKSPACE_ROOT = findWorkspaceRoot(FIXTURE_PACK_ROOT);
 
 function findSampleMcfunction(dir) {
   try {
     const files = fs.readdirSync(dir, { withFileTypes: true, recursive: true });
-    const match = files.find(f => f.isFile() && f.name.endsWith('.mcfunction') && !f.name.includes('node_modules') && !f.name.includes('.tmp'));
+    const match = files.find(f => f.isFile() && f.name.endsWith('.mcfunction') && ((f.parentPath || f.path || '') + '').includes('data')) ||
+                  files.find(f => f.isFile() && f.name.endsWith('.mcfunction') && !f.name.includes('node_modules') && !f.name.includes('.tmp'));
     if (match) {
       return path.join(match.parentPath || match.path, match.name);
     }
   } catch {}
-  const fallbackDir = path.join(dir, '.tmp_spyglass_test');
+  const fallbackDir = path.join(os.tmpdir(), '.tmp_spyglass_test');
   fs.mkdirSync(fallbackDir, { recursive: true });
   const fallbackFile = path.join(fallbackDir, 'sample.mcfunction');
   if (!fs.existsSync(fallbackFile)) {
@@ -111,7 +114,7 @@ async function runTests() {
 
   // Test 5: CLI Script execution on clean file
   await test('CLI Runner Execution (--json)', async () => {
-    const cliScript = path.join(__dirname, 'cli.js');
+    const cliScript = path.join(__dirname, '../src/spyglasslint/cli.js');
     const cliRes = spawnSync('node', [
       cliScript,
       TEST_TARGET_FILE,
@@ -128,7 +131,7 @@ async function runTests() {
 
   // Test 6: MCP Server JSON-RPC Protocol (Initialize -> Tools List -> Call)
   await test('MCP Server Protocol Handshake & Tool Call', async () => {
-    const mcpScript = path.join(__dirname, 'mcp-server.js');
+    const mcpScript = path.join(__dirname, '../src/spyglasslint/mcp-server.js');
     const targetFile = TEST_TARGET_FILE;
 
     const promise = new Promise((resolve, reject) => {
@@ -140,7 +143,7 @@ async function runTests() {
       const timer = setTimeout(() => {
         p.kill();
         reject(new Error('MCP server handshake test timed out'));
-      }, 15000);
+      }, 30000);
 
       const rl = readline.createInterface({ input: p.stdout });
       rl.on('line', l => {
