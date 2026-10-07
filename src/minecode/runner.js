@@ -97,14 +97,20 @@ function resolveLaunchCommand() {
     return { cmd: userVenvMinecode, args: [] };
   }
 
+  const cacheVenvDir = resolveCacheDir();
+  const cacheVenvMinecode = getVenvBin(cacheVenvDir, 'minecode');
+  if (fs.existsSync(cacheVenvMinecode)) {
+    return { cmd: cacheVenvMinecode, args: [] };
+  }
+
   // Check priority 1: uvx
   if (commandExists('uvx')) {
-    return { cmd: 'uvx', args: ['minecode-mcp'] };
+    return { cmd: 'uvx', args: ['--from', 'minecode-mcp', 'minecode'] };
   }
 
   // Check priority 2: pipx
   if (commandExists('pipx')) {
-    return { cmd: 'pipx', args: ['run', 'minecode-mcp'] };
+    return { cmd: 'pipx', args: ['run', '--spec', 'minecode-mcp', 'minecode'] };
   }
 
   // Check priority 3: python3 / python with cache venv
