@@ -89,16 +89,16 @@ npm link
 #### CLI usage
 
 ```bash
-# 1. Static analysis of a single file
+# Static analysis of a single file
 spyglass-lint data/my_pack/function/my_func.mcfunction
 
-# 2. Full analysis of all files in the datapack project
+# Full analysis of all files in the datapack project
 spyglass-lint --all
 
-# 3. Output analysis results in JSON format
+# Output analysis results in JSON format
 spyglass-lint --all --json
 
-# 4. Analyze by specifying the datapack workspace path
+# Analyze by specifying the datapack workspace path
 spyglass-lint --all -w /path/to/datapack
 ```
 
