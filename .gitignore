@@ -2,3 +2,7 @@ node_modules/
 .tmp*
 *.log
 .DS_Store
+minecode-mcp/
+.cache/
+*.venv
+venv/
