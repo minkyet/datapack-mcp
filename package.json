@@ -1,7 +1,7 @@
 {
   "name": "datapack-devkit",
   "version": "1.0.0",
-  "description": "MineCode & Spyglass Language Server 기반 마인크래프트 데이터팩 개발 및 정적 분석 올인원 에이전트 플러그인",
+  "description": "MineCode & Spyglass Language Server based all-in-one Minecraft datapack development and static analysis agent plugin",
   "main": "src/spyglasslint/mcp-server.js",
   "bin": {
     "spyglass-lint": "./bin/spyglass-lint.js",
