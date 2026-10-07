@@ -2,6 +2,12 @@
 
 Datapack DevKit is an AI agent development plugin and static analysis toolkit for Minecraft datapacks, combining [MineCode MCP](https://github.com/AnCarsenat/minecode-mcp) and [Spyglass Language Server](https://github.com/SpyglassMC/Spyglass).
 
+## Prerequisites
+
+- **Node.js**: v18.0.0 or later
+- **Python** (for MineCode MCP): Python 3.10+ or [`uv`](https://docs.astral.sh/uv/) (recommended)
+- **VS Code Extension** (for Spyglass LSP): [Datapack Helper Plus](https://marketplace.visualstudio.com/items?itemName=spgoding.datapack-language-server) installed in VS Code, Cursor, or VSCodium (or specify custom path via `SPYGLASS_SERVER_PATH` environment variable)
+
 ## Install
 
 ### Claude Code
@@ -33,16 +39,6 @@ codex plugin add datapack-devkit@datapack-devkit-marketplace
 
 ```bash
 agy plugin install https://github.com/minkyet/datapack-devkit
-```
-
----
-
-### Link/Install as a standalone CLI tool
-
-To use the `spyglass-lint` CLI command directly from the terminal:
-
-```bash
-npm link
 ```
 
 ## Usage
@@ -82,8 +78,15 @@ Run automatically via Node.js bootstrap runner (`uvx` / `pipx` / `python3 venv`)
 | **Spyglass Web API** | `spyglass_get_registries`, `spyglass_get_mcdoc_symbol`, `spyglass_get_commands` | Version-exact registries and field-level mcdoc schemas |
 | **Wiki & Docs** | `search_wiki`, `get_wiki_page` | Minecraft wiki search and explanations |
 
+### SpyglassLint as standalone CLI
 
-### CLI Usage
+To use the `spyglass-lint` CLI command directly from the terminal:
+
+```bash
+npm link
+```
+
+#### CLI usage
 
 ```bash
 # 1. Static analysis of a single file
@@ -110,14 +113,6 @@ Options:
   -w, --workspace <dir>   Set workspace root directory (default: auto-detected)
   -h, --help              Show help information
 ```
-
-
-## Prerequisites
-
-- **Node.js**: v18.0.0 or later
-- **Python** (for MineCode MCP): Python 3.10+ or [`uv`](https://docs.astral.sh/uv/) (recommended)
-- **VS Code Extension** (for Spyglass LSP): [Datapack Helper Plus](https://marketplace.visualstudio.com/items?itemName=spgoding.datapack-language-server) installed in VS Code, Cursor, or VSCodium (or specify custom path via `SPYGLASS_SERVER_PATH` environment variable)
-
 
 ## Acknowledgments & Upstream Sources
 
