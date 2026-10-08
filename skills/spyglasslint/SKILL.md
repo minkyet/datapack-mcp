@@ -25,11 +25,13 @@ Statically verifies Minecraft datapack code using Spyglass Language Server and m
 ### 2. Project-Wide Analysis (`spyglass_analyze_project`)
 - **When to use**: After large refactorings or before concluding a task to perform comprehensive AST and cross-reference analysis across the entire datapack.
 - **Checked items**: Broken function calls, missing tags, undeclared symbols, and invalid NBT schemas.
-- **Parameters**: None (`{}`)
+- **Parameters**:
+  - `workspace_path` (string, optional): Datapack root directory path. If omitted, automatically detects the datapack root from context.
 - **Example call**:
   - Tool: `spyglass_analyze_project`
-  - Arguments: `{}`
+  - Arguments: `{"workspace_path": "."}`
 
-### 3. Server Status & Restart
-- `spyglass_get_status`: Inspect LSP readiness, active Minecraft version, workspace path, and process ID.
+### 3. Server Status & Workspace Control
+- `spyglass_get_status`: Inspect LSP readiness, active Minecraft version, workspace path, and valid datapack detection status.
+- `spyglass_set_workspace`: Explicitly switch or set the active datapack workspace root directory (e.g. `{"workspace_path": "path/to/datapack"}`).
 - `spyglass_restart_server`: Restart the language server daemon to immediately reload updated configuration (`spyglass.json` or `pack.mcmeta`).

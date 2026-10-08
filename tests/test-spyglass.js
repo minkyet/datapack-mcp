@@ -17,9 +17,10 @@ const path = require('node:path');
 const fs = require('node:fs');
 const readline = require('node:readline');
 const os = require('node:os');
+const { pathToFileURL } = require('node:url');
 const { checkCache } = require('../src/spyglasslint/warmup');
 const { LspClient } = require('../src/spyglasslint/lsp-client');
-const { findWorkspaceRoot } = require('../src/spyglasslint/workspace');
+const { findWorkspaceRoot, isPluginDirectory, isDatapackRoot } = require('../src/spyglasslint/workspace');
 
 const FIXTURE_PACK_ROOT = path.resolve(__dirname, 'fixtures/test_pack');
 const WORKSPACE_ROOT = findWorkspaceRoot(FIXTURE_PACK_ROOT);
@@ -68,13 +69,22 @@ async function runTests() {
     }
   }
 
-  // Test 1: Cache verification
+  // Test 1: Workspace Detection & Plugin Filtering
+  await test('Workspace Detection & Plugin Isolation', async () => {
+    assert.strictEqual(isDatapackRoot(FIXTURE_PACK_ROOT), true, 'Fixture should be recognized as a valid datapack');
+    assert.strictEqual(isDatapackRoot('/tmp'), false, '/tmp should not be a datapack');
+    assert.strictEqual(isPluginDirectory(path.resolve(__dirname, '..')), true, 'Parent repo should be identified as plugin directory');
+    const detected = findWorkspaceRoot(FIXTURE_PACK_ROOT);
+    assert.strictEqual(detected, FIXTURE_PACK_ROOT, 'Should resolve to fixture datapack root');
+  });
+
+  // Test 2: Cache verification
   await test('Cache Warmup Status', async () => {
     const isCached = await checkCache();
     assert.strictEqual(isCached, true, 'Required metadata cache must be present');
   });
 
-  // Test 2: Core LSP Client start & clean file diagnosis
+  // Test 3: Core LSP Client start & clean file diagnosis
   const client = new LspClient({ workspaceRoot: WORKSPACE_ROOT });
   await test('LspClient Start & Clean File Diagnosis', async () => {
     await client.start();
@@ -85,7 +95,7 @@ async function runTests() {
     assert.strictEqual(diags.length, 0, 'Clean file should produce 0 diagnostics');
   });
 
-  // Test 3: In-memory NBT error & undeclared function detection
+  // Test 4: In-memory NBT error & undeclared function detection
   await test('NBT Casing & Undeclared Symbol Detection', async () => {
     const badCode = [
       'summon interaction ~ ~ ~ {Width: 4.0f}',
@@ -102,7 +112,7 @@ async function runTests() {
     assert.strictEqual(hasSymbolError, true, 'Should detect undeclared function symbol');
   });
 
-  // Test 4: Project-wide analysis
+  // Test 5: Project-wide analysis
   await test('Project-wide AST & Cross-reference Analysis', async () => {
     const result = await client.analyzeProject();
     assert.strictEqual(result.cancelled, false, 'Analysis should not be cancelled');
@@ -112,7 +122,7 @@ async function runTests() {
   // Close LSP client
   await client.close();
 
-  // Test 5: CLI Script execution on clean file
+  // Test 6: CLI Script execution on clean file
   await test('CLI Runner Execution (--json)', async () => {
     const cliScript = path.join(__dirname, '../src/spyglasslint/cli.js');
     const cliRes = spawnSync('node', [
@@ -129,13 +139,14 @@ async function runTests() {
     assert.strictEqual(parsed.diagnostics.length, 0, 'CLI should report 0 issues for clean file');
   });
 
-  // Test 6: MCP Server JSON-RPC Protocol (Initialize -> Tools List -> Call)
-  await test('MCP Server Protocol Handshake & Tool Call', async () => {
+  // Test 7: MCP Server JSON-RPC Protocol (Initialize with rootUri -> Tools List -> Call)
+  await test('MCP Server Protocol Handshake & Dynamic Workspace Switching', async () => {
     const mcpScript = path.join(__dirname, '../src/spyglasslint/mcp-server.js');
     const targetFile = TEST_TARGET_FILE;
 
     const promise = new Promise((resolve, reject) => {
-      const p = spawn('node', [mcpScript, '--workspace', WORKSPACE_ROOT], {
+      // Spawn without --workspace to test dynamic detection & rootUri handshake
+      const p = spawn('node', [mcpScript], {
         cwd: WORKSPACE_ROOT,
         stdio: ['pipe', 'pipe', 'inherit']
       });
@@ -154,6 +165,10 @@ async function runTests() {
             p.stdin.write(JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} }) + '\n');
           } else if (msg.id === 2) {
             assert.ok(msg.result.tools.some(t => t.name === 'spyglass_diagnose_file'));
+            assert.ok(msg.result.tools.some(t => t.name === 'spyglass_set_workspace'));
+            const analyzeTool = msg.result.tools.find(t => t.name === 'spyglass_analyze_project');
+            assert.ok(analyzeTool.inputSchema.properties.workspace_path, 'analyze_project should accept workspace_path');
+
             p.stdin.write(JSON.stringify({
               jsonrpc: '2.0',
               id: 3,
@@ -169,9 +184,31 @@ async function runTests() {
               jsonrpc: '2.0',
               id: 4,
               method: 'tools/call',
-              params: { name: 'spyglass_get_status', arguments: {} }
+              params: {
+                name: 'spyglass_analyze_project',
+                arguments: { workspace_path: WORKSPACE_ROOT }
+              }
             }) + '\n');
           } else if (msg.id === 4) {
+            assert.strictEqual(msg.result.isError, false);
+            p.stdin.write(JSON.stringify({
+              jsonrpc: '2.0',
+              id: 5,
+              method: 'tools/call',
+              params: {
+                name: 'spyglass_set_workspace',
+                arguments: { workspace_path: WORKSPACE_ROOT }
+              }
+            }) + '\n');
+          } else if (msg.id === 5) {
+            assert.strictEqual(msg.result.isError, false);
+            p.stdin.write(JSON.stringify({
+              jsonrpc: '2.0',
+              id: 6,
+              method: 'tools/call',
+              params: { name: 'spyglass_get_status', arguments: {} }
+            }) + '\n');
+          } else if (msg.id === 6) {
             assert.strictEqual(msg.result.isError, false);
             clearTimeout(timer);
             p.kill();
@@ -195,6 +232,7 @@ async function runTests() {
         method: 'initialize',
         params: {
           protocolVersion: '2024-11-05',
+          rootUri: pathToFileURL(WORKSPACE_ROOT).href,
           capabilities: {},
           clientInfo: { name: 'test-client', version: '1.0.0' }
         }

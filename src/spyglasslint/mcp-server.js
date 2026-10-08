@@ -12,12 +12,13 @@
 const readline = require('node:readline');
 const path = require('node:path');
 const fs = require('node:fs');
+const { fileURLToPath } = require('node:url');
 const { LspClient } = require('./lsp-client');
-const { findWorkspaceRoot } = require('./workspace');
+const { findWorkspaceRoot, isDatapackRoot } = require('./workspace');
 
 class McpServer {
   constructor(options = {}) {
-    const rawRoot = options.workspaceRoot || this._parseCliWorkspace() || process.cwd();
+    const rawRoot = options.workspaceRoot || this._parseCliWorkspace() || null;
     this.workspaceRoot = path.resolve(findWorkspaceRoot(rawRoot));
     this.client = new LspClient({ workspaceRoot: this.workspaceRoot });
     this.initPromise = null;
@@ -52,6 +53,60 @@ class McpServer {
         console.error('[McpServer] Failed to initialize Spyglass LSP:', err);
       }
     })();
+  }
+
+  async switchWorkspace(newRoot, reason = 'Workspace switch') {
+    const resolved = path.resolve(newRoot);
+    if (this.workspaceRoot === resolved && this.client && this.isReady) {
+      return;
+    }
+
+    for (const w of this.configWatchers) {
+      try { w.close(); } catch {}
+    }
+    this.configWatchers = [];
+
+    this.workspaceRoot = resolved;
+    this.isReady = false;
+    this.initPromise = (async () => {
+      try {
+        if (this.client) {
+          await this.client.close().catch(() => {});
+        }
+        this.client = new LspClient({ workspaceRoot: this.workspaceRoot });
+        await this.client.start();
+        this.isReady = true;
+        this.initError = null;
+      } catch (err) {
+        this.initError = err;
+        console.error(`[McpServer] Failed to switch workspace to ${resolved}:`, err);
+      }
+    })();
+
+    this._watchConfigs();
+    return await this.initPromise;
+  }
+
+  async _ensureWorkspace(targetHint = null) {
+    if (targetHint) {
+      let candidate = targetHint;
+      if (!path.isAbsolute(candidate)) {
+        const base = process.env.PWD || this.workspaceRoot || process.cwd();
+        candidate = path.resolve(base, candidate);
+      }
+      const detected = findWorkspaceRoot(candidate);
+      if (detected && detected !== this.workspaceRoot) {
+        await this.switchWorkspace(detected, `Detected workspace from target: ${targetHint}`);
+        return;
+      }
+    }
+
+    if (!isDatapackRoot(this.workspaceRoot)) {
+      const detected = findWorkspaceRoot();
+      if (detected && detected !== this.workspaceRoot) {
+        await this.switchWorkspace(detected, 'Auto-detected valid datapack workspace');
+      }
+    }
   }
 
   async restart(reason = 'Manual reload') {
@@ -155,7 +210,26 @@ class McpServer {
     const { id, method, params } = msg;
 
     switch (method) {
-      case 'initialize':
+      case 'initialize': {
+        const rawUri = params?.rootUri || params?.workspaceFolders?.[0]?.uri;
+        let clientRoot = null;
+        if (rawUri) {
+          try {
+            clientRoot = fileURLToPath(rawUri);
+          } catch {
+            clientRoot = rawUri;
+          }
+        } else if (params?.rootPath) {
+          clientRoot = params.rootPath;
+        }
+
+        if (clientRoot && fs.existsSync(clientRoot)) {
+          const detected = findWorkspaceRoot(clientRoot);
+          if (detected && detected !== this.workspaceRoot) {
+            await this.switchWorkspace(detected, `Client initialize rootUri: ${clientRoot}`);
+          }
+        }
+
         return this._sendResult(id, {
           protocolVersion: '2024-11-05',
           capabilities: {
@@ -166,6 +240,7 @@ class McpServer {
             version: '1.0.0'
           }
         });
+      }
 
       case 'ping':
         return this._sendResult(id, {});
@@ -196,7 +271,26 @@ class McpServer {
               description: 'Perform a comprehensive project-wide AST and cross-reference analysis across all files in the datapack. Detects broken function calls, missing tags, and invalid NBT schemas.',
               inputSchema: {
                 type: 'object',
-                properties: {}
+                properties: {
+                  workspace_path: {
+                    type: 'string',
+                    description: 'Optional path to the datapack root directory (relative or absolute). If omitted, automatically detects from active context.'
+                  }
+                }
+              }
+            },
+            {
+              name: 'spyglass_set_workspace',
+              description: 'Explicitly switch or set the active datapack workspace root directory for the Spyglass Language Server daemon.',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  workspace_path: {
+                    type: 'string',
+                    description: 'Absolute or relative path to the target datapack root directory containing pack.mcmeta or spyglass.json.'
+                  }
+                },
+                required: ['workspace_path']
               }
             },
             {
@@ -229,28 +323,66 @@ class McpServer {
   async _handleToolCall(id, params) {
     const { name, arguments: args = {} } = params || {};
 
-    if (!this.isReady) {
-      if (this.initPromise) {
-        await this.initPromise;
-      }
-      if (this.initError) {
-        return this._sendToolError(id, `Spyglass LSP initialization failed: ${this.initError.message}`);
-      }
-    }
-
     try {
       switch (name) {
+        case 'spyglass_set_workspace': {
+          const wsPath = args.workspace_path;
+          if (!wsPath) {
+            return this._sendToolError(id, 'Missing required argument: workspace_path');
+          }
+          const base = process.env.PWD || process.cwd();
+          const resolved = path.isAbsolute(wsPath) ? wsPath : path.resolve(base, wsPath);
+          if (!fs.existsSync(resolved)) {
+            return this._sendToolError(id, `Specified workspace directory does not exist: ${wsPath}`);
+          }
+          const detected = findWorkspaceRoot(resolved) || resolved;
+          await this.switchWorkspace(detected, `Manual set_workspace: ${detected}`);
+
+          return this._sendResult(id, {
+            content: [{
+              type: 'text',
+              text: `✓ **Spyglass workspace successfully switched to:** \`${this.workspaceRoot}\`\n(LSP re-indexed)`
+            }],
+            isError: false
+          });
+        }
+
         case 'spyglass_diagnose_file': {
           const filePath = args.file_path;
           if (!filePath) {
             return this._sendToolError(id, 'Missing required argument: file_path');
           }
 
-          const absPath = path.isAbsolute(filePath) ? filePath : path.resolve(this.workspaceRoot, filePath);
-          const content = typeof args.content === 'string' ? args.content : null;
+          let absPath = filePath;
+          if (!path.isAbsolute(filePath)) {
+            const candidatePwd = process.env.PWD ? path.resolve(process.env.PWD, filePath) : null;
+            const candidateWs = this.workspaceRoot ? path.resolve(this.workspaceRoot, filePath) : null;
+            const candidateCwd = path.resolve(process.cwd(), filePath);
 
+            if (candidatePwd && fs.existsSync(candidatePwd)) {
+              absPath = candidatePwd;
+            } else if (candidateWs && fs.existsSync(candidateWs)) {
+              absPath = candidateWs;
+            } else if (fs.existsSync(candidateCwd)) {
+              absPath = candidateCwd;
+            } else {
+              absPath = candidateWs || candidatePwd || candidateCwd;
+            }
+          }
+
+          const content = typeof args.content === 'string' ? args.content : null;
           if (content === null && !fs.existsSync(absPath)) {
-            return this._sendToolError(id, `File does not exist: ${filePath}`);
+            return this._sendToolError(id, `File does not exist: ${filePath} (resolved: ${absPath})`);
+          }
+
+          // Auto-switch workspace if file belongs to a different datapack
+          await this._ensureWorkspace(path.dirname(absPath));
+
+          if (!this.isReady) {
+            if (this.initPromise) await this.initPromise;
+            if (this.initError) {
+              return this._sendToolError(id, `Spyglass LSP initialization failed: ${this.initError.message}`);
+            }
           }
 
           const diags = await this.client.diagnoseFile(absPath, content);
@@ -285,10 +417,40 @@ class McpServer {
         }
 
         case 'spyglass_analyze_project': {
+          if (args.workspace_path) {
+            await this._ensureWorkspace(args.workspace_path);
+          } else {
+            await this._ensureWorkspace();
+          }
+
+          if (!this.isReady) {
+            if (this.initPromise) await this.initPromise;
+            if (this.initError) {
+              return this._sendToolError(id, `Spyglass LSP initialization failed: ${this.initError.message}`);
+            }
+          }
+
+          const hasMcmeta = fs.existsSync(path.join(this.workspaceRoot, 'pack.mcmeta'));
+          const hasDataDir = fs.existsSync(path.join(this.workspaceRoot, 'data'));
+          const hasSpyglassCfg = fs.existsSync(path.join(this.workspaceRoot, 'spyglass.json'));
+
           const result = await this.client.analyzeProject();
           const fileCount = Object.keys(result.diagnosticsByFile).length;
 
+          if (result.totalFiles === 0 && !hasMcmeta && !hasDataDir && !hasSpyglassCfg) {
+            return this._sendResult(id, {
+              content: [{
+                type: 'text',
+                text: `⚠️ **[Warning] No Minecraft datapack files found in workspace:** \`${this.workspaceRoot}\`\n\n` +
+                      `- The current workspace directory does not contain \`pack.mcmeta\` or \`data/\`.\n` +
+                      `- **Actionable fix:** Please provide the \`workspace_path\` argument (e.g. \`{"workspace_path": "/path/to/datapack"}\`) or call \`spyglass_set_workspace\`.`
+              }],
+              isError: true
+            });
+          }
+
           let textOutput = `### Spyglass Full Project Analysis\n\n`;
+          textOutput += `- **Workspace Root:** \`${this.workspaceRoot}\`\n`;
           textOutput += `- **Total Files:** ${result.totalFiles}\n`;
           textOutput += `- **Analyzed Files:** ${result.analyzedFiles}\n`;
           textOutput += `- **Files with Issues:** ${fileCount}\n\n`;
@@ -340,12 +502,15 @@ class McpServer {
             } catch {}
           }
 
+          const isValidDatapack = isDatapackRoot(this.workspaceRoot);
+
           const statusText = [
             `### Spyglass Language Server Status`,
             `- **Status:** ${this.isReady ? 'Active & Ready' : 'Initializing...'}`,
             `- **Workspace Root:** \`${this.workspaceRoot}\``,
+            `- **Is Valid Datapack:** ${isValidDatapack ? '✓ Yes' : '✗ No (missing pack.mcmeta or data/)'}`,
             `- **Configured Game Version:** \`${configuredVersion}\``,
-            `- **LSP Process ID:** ${this.client.process?.pid || 'N/A'}`
+            `- **LSP Process ID:** ${this.client?.process?.pid || 'N/A'}`
           ].join('\n');
 
           return this._sendResult(id, {
