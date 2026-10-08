@@ -22,7 +22,7 @@ datapack-mcp is an AI agent development plugin and static analysis toolkit for M
 #### Codex CLI
 ```bash
 codex plugin marketplace add minkyet/datapack-mcp
-codex plugin add datapack-mcp@datapack-mcp-marketplace
+codex plugin add datapack-mcp@datapack-devkit-marketplace
 ```
 
 #### Codex App (GUI)
