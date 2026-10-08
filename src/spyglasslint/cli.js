@@ -33,9 +33,9 @@ ${BOLD}Spyglass Datapack Linter (CLI)${RESET}
 Powered by Spyglass Language Server & mcdoc schemas.
 
 ${BOLD}USAGE:${RESET}
-  spyglass-lint <file_path>        Lint a single file
-  spyglass-lint --all              Lint all files in the datapack project
-  spyglass-lint --help             Show this help message
+  spyglasslint <file_path>        Lint a single file
+  spyglasslint --all              Lint all files in the datapack project
+  spyglasslint --help             Show this help message
 
 ${BOLD}OPTIONS:${RESET}
   -a, --all               Run project-wide analysis across all files
@@ -44,9 +44,9 @@ ${BOLD}OPTIONS:${RESET}
   -h, --help              Show help information
 
 ${BOLD}EXAMPLES:${RESET}
-  spyglass-lint data/my_pack/function/tick.mcfunction
-  spyglass-lint --all
-  spyglass-lint --all --json
+  spyglasslint data/my_pack/function/tick.mcfunction
+  spyglasslint --all
+  spyglasslint --all --json
 `);
 }
 

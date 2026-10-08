@@ -4,7 +4,7 @@
   "description": "MineCode & Spyglass Language Server based Minecraft datapack development and static analysis MCPs",
   "main": "src/spyglasslint/mcp-server.js",
   "bin": {
-    "spyglass-lint": "./bin/spyglass-lint.js",
+    "spyglasslint": "./bin/spyglasslint.js",
     "minecode-runner": "./bin/minecode-runner.js"
   },
   "scripts": {

@@ -80,7 +80,7 @@ Run automatically via Node.js bootstrap runner (`uvx` / `pipx` / `python3 venv`)
 
 ### SpyglassLint as standalone CLI
 
-To use the `spyglass-lint` CLI command directly from the terminal:
+To use the `spyglasslint` CLI command directly from the terminal:
 
 ```bash
 npm link
@@ -90,22 +90,22 @@ npm link
 
 ```bash
 # Static analysis of a single file
-spyglass-lint data/my_pack/function/my_func.mcfunction
+spyglasslint data/my_pack/function/my_func.mcfunction
 
 # Full analysis of all files in the datapack project
-spyglass-lint --all
+spyglasslint --all
 
 # Output analysis results in JSON format
-spyglass-lint --all --json
+spyglasslint --all --json
 
 # Analyze by specifying the datapack workspace path
-spyglass-lint --all -w /path/to/datapack
+spyglasslint --all -w /path/to/datapack
 ```
 
 #### CLI options
 
 ```text
-Usage: spyglass-lint [options] [file_path]
+Usage: spyglasslint [options] [file_path]
 
 Options:
   -a, --all               Run project-wide analysis across all files

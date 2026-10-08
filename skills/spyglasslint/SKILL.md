@@ -1,5 +1,5 @@
 ---
-name: spyglass-lint
+name: spyglasslint
 description: Diagnose syntax, mcdoc/NBT schema, command references, and undeclared symbols in Minecraft datapacks using Spyglass Language Server.
 ---
 
@@ -9,7 +9,7 @@ Statically verifies Minecraft datapack code using Spyglass Language Server and m
 
 ## Mandatory Agent Execution Rule
 - **STRICT MCP USAGE**: Always invoke static verification directly via the MCP tools (`spyglass_diagnose_file`, `spyglass_analyze_project`).
-- **DO NOT EXECUTE CLI COMMANDS**: Never run `spyglass-lint` CLI via bash/terminal commands. The MCP server keeps a persistent LSP daemon running in memory for sub-second responses, whereas the CLI restarts the entire LSP process on every run.
+- **DO NOT EXECUTE CLI COMMANDS**: Never run `spyglasslint` CLI via bash/terminal commands. The MCP server keeps a persistent LSP daemon running in memory for sub-second responses, whereas the CLI restarts the entire LSP process on every run.
 
 ## Available MCP Tools & Usage
 
