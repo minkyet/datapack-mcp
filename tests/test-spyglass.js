@@ -72,7 +72,12 @@ async function runTests() {
   // Test 1: Workspace Detection & Plugin Filtering
   await test('Workspace Detection & Plugin Isolation', async () => {
     assert.strictEqual(isDatapackRoot(FIXTURE_PACK_ROOT), true, 'Fixture should be recognized as a valid datapack');
-    assert.strictEqual(isDatapackRoot('/tmp'), false, '/tmp should not be a datapack');
+    const emptyTestDir = fs.mkdtempSync(path.join(os.tmpdir(), 'non_datapack_'));
+    try {
+      assert.strictEqual(isDatapackRoot(emptyTestDir), false, 'Empty dir should not be a datapack');
+    } finally {
+      fs.rmdirSync(emptyTestDir);
+    }
     assert.strictEqual(isPluginDirectory(path.resolve(__dirname, '..')), true, 'Parent repo should be identified as plugin directory');
     const detected = findWorkspaceRoot(FIXTURE_PACK_ROOT);
     assert.strictEqual(detected, FIXTURE_PACK_ROOT, 'Should resolve to fixture datapack root');
