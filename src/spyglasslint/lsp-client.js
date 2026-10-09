@@ -228,8 +228,8 @@ class LspClient {
     }
 
     return {
-      totalFiles: result?.total ?? 0,
-      analyzedFiles: result?.analyzed ?? 0,
+      totalFiles: result?.totalFiles ?? result?.total ?? 0,
+      analyzedFiles: result?.analyzedFiles ?? result?.analyzed ?? 0,
       cancelled: Boolean(result?.cancelled),
       diagnosticsByFile
     };

@@ -6,3 +6,5 @@ minecode-mcp/
 .cache/
 *.venv
 venv/
+docs/
+tests/mcp-test

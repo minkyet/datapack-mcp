@@ -117,6 +117,8 @@ async function runTests() {
     const result = await client.analyzeProject();
     assert.strictEqual(result.cancelled, false, 'Analysis should not be cancelled');
     assert.ok(typeof result.diagnosticsByFile === 'object', 'diagnosticsByFile should be an object');
+    assert.ok(result.totalFiles > 0, `totalFiles should be > 0, got ${result.totalFiles}`);
+    assert.ok(result.analyzedFiles > 0, `analyzedFiles should be > 0, got ${result.analyzedFiles}`);
   });
 
   // Close LSP client
